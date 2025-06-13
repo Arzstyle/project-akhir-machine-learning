@@ -15,7 +15,9 @@ Kelas: TI23A - Proyek Akhir Mata Kuliah Machine Learning
 
 | Nama Lengkap         | NIM          | Peran                                      |
 |----------------------|--------------|---------------------------------------------|
-| [Nama Anda]          | [NIM Anda]   | Pengembang utama, dokumentasi & model ML    |
+| Muhamad Akbar Rizky S          | 20230040   | Pengembang utama, dokumentasi & model ML    |
+| Tresna Gunawan          | 20230040236   | dokumentasi & model ML    |
+| Inda Fadila Nur Hawa          | 20230040236   | dokumentasi & model ML    |
 
 ---
 
