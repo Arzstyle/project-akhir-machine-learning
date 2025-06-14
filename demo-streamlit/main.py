@@ -14,7 +14,30 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import confusion_matrix, classification_report, accuracy_score, precision_score, recall_score, f1_score, roc_auc_score, roc_curve
 import joblib
 import warnings
-warnings.filterwarnings('ignore')
+warnings.filterwarnings("ignore")
+
+# Konten panduan penggunaan untuk setiap input field
+field_tooltips = {
+    "gender": "Pilih jenis kelamin pelanggan: Male atau Female.",
+    "senior_citizen": "Apakah pelanggan berusia 65 tahun atau lebih? Pilih Ya (1) atau Tidak (0).",
+    "partner": "Apakah pelanggan memiliki pasangan? Pilih Ya atau Tidak.",
+    "dependents": "Apakah pelanggan memiliki tanggungan? Pilih Ya atau Tidak.",
+    "phone_service": "Apakah pelanggan menggunakan layanan telepon? Pilih Ya atau Tidak.",
+    "multiple_lines": "Apakah pelanggan memiliki multiple lines? Pilih Ya, Tidak, atau No phone service jika tidak menggunakan layanan telepon.",
+    "internet_service": "Jenis layanan internet yang digunakan pelanggan: DSL, Fiber optic, atau No jika tidak menggunakan layanan internet.",
+    "online_security": "Apakah pelanggan menggunakan layanan keamanan online? Pilih Ya, Tidak, atau No internet service jika tidak menggunakan layanan internet.",
+    "online_backup": "Apakah pelanggan menggunakan layanan backup online? Pilih Ya, Tidak, atau No internet service jika tidak menggunakan layanan internet.",
+    "device_protection": "Apakah pelanggan menggunakan layanan proteksi perangkat? Pilih Ya, Tidak, atau No internet service jika tidak menggunakan layanan internet.",
+    "tech_support": "Apakah pelanggan menggunakan layanan dukungan teknis? Pilih Ya, Tidak, atau No internet service jika tidak menggunakan layanan internet.",
+    "streaming_tv": "Apakah pelanggan menggunakan layanan streaming TV? Pilih Ya, Tidak, atau No internet service jika tidak menggunakan layanan internet.",
+    "streaming_movies": "Apakah pelanggan menggunakan layanan streaming film? Pilih Ya, Tidak, atau No internet service jika tidak menggunakan layanan internet.",
+    "contract": "Jenis kontrak langganan pelanggan: Month-to-month, One year, atau Two year.",
+    "paperless_billing": "Apakah pelanggan menggunakan tagihan elektronik (paperless billing)? Pilih Ya atau Tidak.",
+    "payment_method": "Metode pembayaran yang digunakan pelanggan: Electronic check, Mailed check, Bank transfer (automatic), atau Credit card (automatic).",
+    "tenure": "Lama berlangganan pelanggan dalam bulan (nilai antara 0 hingga 100).",
+    "monthly_charges": "Biaya bulanan pelanggan dalam USD (nilai antara 0.0 hingga 200.0).",
+    "total_charges": "Total biaya yang telah dibayar pelanggan dalam USD (nilai antara 0.0 hingga 10000.0)."
+}
 
 # Konfigurasi halaman
 st.set_page_config(
@@ -117,13 +140,13 @@ def train_model(df):
     preprocessor = ColumnTransformer(
         transformers=[
             ("num", StandardScaler(), numerical_features),
-            ("cat", OneHotEncoder(handle_unknown='ignore'), categorical_features)
+            ("cat", OneHotEncoder(handle_unknown="ignore"), categorical_features)
         ])
     
     # Buat pipeline model
     model_pipeline = Pipeline(steps=[
         ("preprocessor", preprocessor),
-        ("classifier", LogisticRegression(solver='liblinear', random_state=42, class_weight='balanced'))
+        ("classifier", LogisticRegression(solver="liblinear", random_state=42, class_weight="balanced"))
     ])
     
     # Latih model
@@ -134,11 +157,11 @@ def train_model(df):
     y_pred_proba = model_pipeline.predict_proba(X_test)[:, 1]
     
     metrics = {
-        'accuracy': accuracy_score(y_test, y_pred),
-        'precision': precision_score(y_test, y_pred),
-        'recall': recall_score(y_test, y_pred),
-        'f1': f1_score(y_test, y_pred),
-        'roc_auc': roc_auc_score(y_test, y_pred_proba)
+        "accuracy": accuracy_score(y_test, y_pred),
+        "precision": precision_score(y_test, y_pred),
+        "recall": recall_score(y_test, y_pred),
+        "f1": f1_score(y_test, y_pred),
+        "roc_auc": roc_auc_score(y_test, y_pred_proba)
     }
     
     return model_pipeline, metrics, X_test, y_test, y_pred, y_pred_proba, numerical_features, categorical_features
@@ -183,9 +206,9 @@ def explain_prediction(input_data, feature_importance_df, numerical_features, ca
     # Analisis fitur numerik
     for feature in numerical_features:
         value = input_data[feature].iloc[0]
-        coef_row = feature_importance_df[feature_importance_df['Feature'] == feature]
+        coef_row = feature_importance_df[feature_importance_df["Feature"] == feature]
         if not coef_row.empty:
-            coef = coef_row['Coefficient'].iloc[0]
+            coef = coef_row["Coefficient"].iloc[0]
             if abs(coef) > 0.1:  # Hanya fitur dengan koefisien signifikan
                 if coef > 0:
                     explanations.append(f"• {feature}: {value} (meningkatkan risiko churn)")
@@ -196,9 +219,9 @@ def explain_prediction(input_data, feature_importance_df, numerical_features, ca
     for feature in categorical_features:
         value = input_data[feature].iloc[0]
         # Cari fitur yang sesuai setelah one-hot encoding
-        matching_features = feature_importance_df[feature_importance_df['Feature'].str.contains(f"{feature}_{value}", na=False)]
+        matching_features = feature_importance_df[feature_importance_df["Feature"].str.contains(f"{feature}_{value}", na=False)]
         if not matching_features.empty:
-            coef = matching_features['Coefficient'].iloc[0]
+            coef = matching_features["Coefficient"].iloc[0]
             if abs(coef) > 0.1:
                 if coef > 0:
                     explanations.append(f"• {feature}: {value} (meningkatkan risiko churn)")
@@ -211,7 +234,7 @@ def explain_prediction(input_data, feature_importance_df, numerical_features, ca
 st.sidebar.title("🧭 Navigasi")
 page = st.sidebar.selectbox(
     "Pilih Halaman:",
-    ["Dashboard Statistik Data", "Prediksi Churn", "About", "How to Use"]
+    ["Dashboard Statistik Data", "Prediksi Churn", "About"]
 )
 
 # Muat data
@@ -224,58 +247,58 @@ if df is not None:
 
     # HALAMAN 1: Dashboard Statistik Data
     if page == "Dashboard Statistik Data":
-        st.markdown('<div class="main-header">📊 Dashboard Statistik Data</div>', unsafe_allow_html=True)
+        st.markdown("<div class=\"main-header\">📊 Dashboard Statistik Data</div>", unsafe_allow_html=True)
         
         # Overview metrics
         col1, col2, col3, col4 = st.columns(4)
         
         with col1:
-            st.markdown('<div class="metric-card">', unsafe_allow_html=True)
+            st.markdown("<div class=\"metric-card\">", unsafe_allow_html=True)
             st.metric("Total Pelanggan", f"{len(df):,}")
-            st.markdown('</div>', unsafe_allow_html=True)
+            st.markdown("</div>", unsafe_allow_html=True)
         
         with col2:
-            churn_count = len(df[df['Churn'] == 'Yes'])
-            st.markdown('<div class="metric-card">', unsafe_allow_html=True)
+            churn_count = len(df[df["Churn"] == "Yes"])
+            st.markdown("<div class=\"metric-card\">", unsafe_allow_html=True)
             st.metric("Pelanggan Churn", f"{churn_count:,}")
-            st.markdown('</div>', unsafe_allow_html=True)
+            st.markdown("</div>", unsafe_allow_html=True)
         
         with col3:
             churn_rate = (churn_count / len(df)) * 100
-            st.markdown('<div class="metric-card">', unsafe_allow_html=True)
+            st.markdown("<div class=\"metric-card\">", unsafe_allow_html=True)
             st.metric("Tingkat Churn", f"{churn_rate:.1f}%")
-            st.markdown('</div>', unsafe_allow_html=True)
+            st.markdown("</div>", unsafe_allow_html=True)
         
         with col4:
-            avg_monthly_charges = df['MonthlyCharges'].mean()
-            st.markdown('<div class="metric-card">', unsafe_allow_html=True)
+            avg_monthly_charges = df["MonthlyCharges"].mean()
+            st.markdown("<div class=\"metric-card\">", unsafe_allow_html=True)
             st.metric("Rata-rata Biaya Bulanan", f"${avg_monthly_charges:.2f}")
-            st.markdown('</div>', unsafe_allow_html=True)
+            st.markdown("</div>", unsafe_allow_html=True)
         
         # Distribusi Churn
-        st.markdown('<div class="sub-header">Distribusi Churn Pelanggan</div>', unsafe_allow_html=True)
+        st.markdown("<div class=\"sub-header\">Distribusi Churn Pelanggan</div>", unsafe_allow_html=True)
         
         col1, col2 = st.columns(2)
         
         with col1:
             # Pie chart
-            churn_counts = df['Churn'].value_counts()
+            churn_counts = df["Churn"].value_counts()
             fig_pie = px.pie(
                 values=churn_counts.values,
-                names=['Tidak Churn', 'Churn'],
+                names=["Tidak Churn", "Churn"],
                 title="Distribusi Churn",
-                color_discrete_sequence=['#2ecc71', '#e74c3c']
+                color_discrete_sequence=["#2ecc71", "#e74c3c"]
             )
             st.plotly_chart(fig_pie, use_container_width=True)
         
         with col2:
             # Bar chart
             fig_bar = px.bar(
-                x=['Tidak Churn', 'Churn'],
+                x=["Tidak Churn", "Churn"],
                 y=churn_counts.values,
                 title="Jumlah Pelanggan per Status Churn",
-                color=['Tidak Churn', 'Churn'],
-                color_discrete_sequence=['#2ecc71', '#e74c3c']
+                color=["Tidak Churn", "Churn"],
+                color_discrete_sequence=["#2ecc71", "#e74c3c"]
             )
             fig_bar.update_layout(showlegend=False)
             st.plotly_chart(fig_bar, use_container_width=True)
@@ -288,9 +311,9 @@ if df is not None:
         """.format(churn_rate), unsafe_allow_html=True)
         
         # Analisis fitur numerik
-        st.markdown('<div class="sub-header">Analisis Fitur Numerik</div>', unsafe_allow_html=True)
+        st.markdown("<div class=\"sub-header\">Analisis Fitur Numerik</div>", unsafe_allow_html=True)
         
-        numeric_cols = ['tenure', 'MonthlyCharges', 'TotalCharges']
+        numeric_cols = ["tenure", "MonthlyCharges", "TotalCharges"]
         
         for i in range(0, len(numeric_cols), 2):
             cols = st.columns(2)
@@ -301,17 +324,17 @@ if df is not None:
                         fig = px.histogram(
                             df, 
                             x=feature, 
-                            color='Churn',
+                            color="Churn",
                             title=f"Distribusi {feature}",
-                            color_discrete_sequence=['#2ecc71', '#e74c3c'],
+                            color_discrete_sequence=["#2ecc71", "#e74c3c"],
                             opacity=0.7
                         )
                         st.plotly_chart(fig, use_container_width=True)
         
         # Analisis fitur kategorikal
-        st.markdown('<div class="sub-header">Analisis Fitur Kategorikal</div>', unsafe_allow_html=True)
+        st.markdown("<div class=\"sub-header\">Analisis Fitur Kategorikal</div>", unsafe_allow_html=True)
         
-        categorical_cols = ['Contract', 'PaymentMethod', 'InternetService', 'gender']
+        categorical_cols = ["Contract", "PaymentMethod", "InternetService", "gender"]
         
         for i in range(0, len(categorical_cols), 2):
             cols = st.columns(2)
@@ -320,93 +343,94 @@ if df is not None:
                     feature = categorical_cols[i + j]
                     with col:
                         # Hitung proporsi churn per kategori
-                        churn_by_category = df.groupby(feature)['Churn'].apply(lambda x: (x == 'Yes').mean() * 100).reset_index()
-                        churn_by_category.columns = [feature, 'Churn_Rate']
+                        churn_by_category = df.groupby(feature)["Churn"].apply(lambda x: (x == "Yes").mean() * 100).reset_index()
+                        churn_by_category.columns = [feature, "Churn_Rate"]
                         
                         fig = px.bar(
                             churn_by_category,
                             x=feature,
-                            y='Churn_Rate',
+                            y="Churn_Rate",
                             title=f"Tingkat Churn berdasarkan {feature}",
-                            color='Churn_Rate',
-                            color_continuous_scale='Reds'
+                            color="Churn_Rate",
+                            color_continuous_scale="Reds"
                         )
                         fig.update_layout(showlegend=False)
                         st.plotly_chart(fig, use_container_width=True)
 
     # HALAMAN 2: Prediksi Churn
     elif page == "Prediksi Churn":
-        st.markdown('<div class="main-header">🔮 Prediksi Churn Pelanggan</div>', unsafe_allow_html=True)
+        st.markdown("<div class=\"main-header\">🔮 Prediksi Churn Pelanggan</div>", unsafe_allow_html=True)
         
+        # Tambahkan penjelasan singkat tentang fungsi fitur prediksi churn
         st.markdown("""
         <div class="info-box">
-        <strong>📝 Instruksi:</strong> Isi form di bawah ini dengan data pelanggan untuk mendapatkan prediksi churn.
-        Semua field harus diisi untuk mendapatkan hasil prediksi yang akurat.
+        Gunakan fitur ini untuk memprediksi kemungkinan pelanggan akan berhenti berlangganan. 
+        Hasil prediksi didasarkan pada model machine learning dan dapat membantu mengambil keputusan strategis.
         </div>
         """, unsafe_allow_html=True)
-        
+
         # Form input
         with st.form("prediction_form"):
             col1, col2, col3 = st.columns(3)
             
             with col1:
                 st.subheader("Informasi Demografis")
-                gender = st.selectbox("Gender", ["Male", "Female"])
-                senior_citizen = st.selectbox("Senior Citizen", [0, 1], format_func=lambda x: "Ya" if x == 1 else "Tidak")
-                partner = st.selectbox("Partner", ["Yes", "No"], format_func=lambda x: "Ya" if x == "Yes" else "Tidak")
-                dependents = st.selectbox("Dependents", ["Yes", "No"], format_func=lambda x: "Ya" if x == "Yes" else "Tidak")
+                gender = st.selectbox("Gender", ["Male", "Female"], help=field_tooltips["gender"])
+                senior_citizen = st.selectbox("Senior Citizen", [0, 1], format_func=lambda x: "Ya" if x == 1 else "Tidak", help=field_tooltips["senior_citizen"])
+                partner = st.selectbox("Partner", ["Yes", "No"], format_func=lambda x: "Ya" if x == "Yes" else "Tidak", help=field_tooltips["partner"])
+                dependents = st.selectbox("Dependents", ["Yes", "No"], format_func=lambda x: "Ya" if x == "Yes" else "Tidak", help=field_tooltips["dependents"])
                 
                 st.subheader("Informasi Layanan")
-                phone_service = st.selectbox("Phone Service", ["Yes", "No"], format_func=lambda x: "Ya" if x == "Yes" else "Tidak")
-                multiple_lines = st.selectbox("Multiple Lines", ["Yes", "No", "No phone service"])
-                internet_service = st.selectbox("Internet Service", ["DSL", "Fiber optic", "No"])
+                phone_service = st.selectbox("Phone Service", ["Yes", "No"], format_func=lambda x: "Ya" if x == "Yes" else "Tidak", help=field_tooltips["phone_service"])
+                multiple_lines = st.selectbox("Multiple Lines", ["Yes", "No", "No phone service"], help=field_tooltips["multiple_lines"])
+                internet_service = st.selectbox("Internet Service", ["DSL", "Fiber optic", "No"], help=field_tooltips["internet_service"])
             
             with col2:
                 st.subheader("Layanan Tambahan")
-                online_security = st.selectbox("Online Security", ["Yes", "No", "No internet service"])
-                online_backup = st.selectbox("Online Backup", ["Yes", "No", "No internet service"])
-                device_protection = st.selectbox("Device Protection", ["Yes", "No", "No internet service"])
-                tech_support = st.selectbox("Tech Support", ["Yes", "No", "No internet service"])
-                streaming_tv = st.selectbox("Streaming TV", ["Yes", "No", "No internet service"])
-                streaming_movies = st.selectbox("Streaming Movies", ["Yes", "No", "No internet service"])
+                online_security = st.selectbox("Online Security", ["Yes", "No", "No internet service"], help=field_tooltips["online_security"])
+                online_backup = st.selectbox("Online Backup", ["Yes", "No", "No internet service"], help=field_tooltips["online_backup"])
+                device_protection = st.selectbox("Device Protection", ["Yes", "No", "No internet service"], help=field_tooltips["device_protection"])
+                tech_support = st.selectbox("Tech Support", ["Yes", "No", "No internet service"], help=field_tooltips["tech_support"])
+                streaming_tv = st.selectbox("Streaming TV", ["Yes", "No", "No internet service"], help=field_tooltips["streaming_tv"])
+                streaming_movies = st.selectbox("Streaming Movies", ["Yes", "No", "No internet service"], help=field_tooltips["streaming_movies"])
             
             with col3:
                 st.subheader("Informasi Kontrak & Pembayaran")
-                contract = st.selectbox("Contract", ["Month-to-month", "One year", "Two year"])
-                paperless_billing = st.selectbox("Paperless Billing", ["Yes", "No"], format_func=lambda x: "Ya" if x == "Yes" else "Tidak")
+                contract = st.selectbox("Contract", ["Month-to-month", "One year", "Two year"], help=field_tooltips["contract"])
+                paperless_billing = st.selectbox("Paperless Billing", ["Yes", "No"], format_func=lambda x: "Ya" if x == "Yes" else "Tidak", help=field_tooltips["paperless_billing"])
                 payment_method = st.selectbox("Payment Method", [
                     "Electronic check", "Mailed check", "Bank transfer (automatic)", "Credit card (automatic)"
-                ])
+                ], help=field_tooltips["payment_method"])
                 
                 st.subheader("Informasi Finansial")
-                tenure = st.number_input("Tenure (bulan)", min_value=0, max_value=100, value=12)
-                monthly_charges = st.number_input("Monthly Charges ($)", min_value=0.0, max_value=200.0, value=50.0, step=0.01)
-                total_charges = st.number_input("Total Charges ($)", min_value=0.0, max_value=10000.0, value=600.0, step=0.01)
+                tenure = st.number_input("Tenure (bulan)", min_value=0, max_value=100, value=12, help=field_tooltips["tenure"])
+                monthly_charges = st.number_input("Monthly Charges ($)", min_value=0.0, max_value=200.0, value=50.0, step=0.01, help=field_tooltips["monthly_charges"])
+                total_charges = st.number_input("Total Charges ($)", min_value=0.0, max_value=10000.0, value=600.0, step=0.01, help=field_tooltips["total_charges"])
             
             submitted = st.form_submit_button("🔍 Prediksi Churn", use_container_width=True)
             
             if submitted:
                 # Buat DataFrame input
                 input_data = pd.DataFrame({
-                    'gender': [gender],
-                    'SeniorCitizen': [senior_citizen],
-                    'Partner': [partner],
-                    'Dependents': [dependents],
-                    'tenure': [tenure],
-                    'PhoneService': [phone_service],
-                    'MultipleLines': [multiple_lines],
-                    'InternetService': [internet_service],
-                    'OnlineSecurity': [online_security],
-                    'OnlineBackup': [online_backup],
-                    'DeviceProtection': [device_protection],
-                    'TechSupport': [tech_support],
-                    'StreamingTV': [streaming_tv],
-                    'StreamingMovies': [streaming_movies],
-                    'Contract': [contract],
-                    'PaperlessBilling': [paperless_billing],
-                    'PaymentMethod': [payment_method],
-                    'MonthlyCharges': [monthly_charges],
-                    'TotalCharges': [total_charges]
+                    "gender": [gender],
+                    "SeniorCitizen": [senior_citizen],
+                    "Partner": [partner],
+                    "Dependents": [dependents],
+                    "tenure": [tenure],
+                    "PhoneService": [phone_service],
+                    "MultipleLines": [multiple_lines],
+                    "InternetService": [internet_service],
+                    "OnlineSecurity": [online_security],
+                    "OnlineBackup": [online_backup],
+                    "DeviceProtection": [device_protection],
+                    "TechSupport": [tech_support],
+                    "StreamingTV": [streaming_tv],
+                    "StreamingMovies": [streaming_movies],
+                    "Contract": [contract],
+                    "PaperlessBilling": [paperless_billing],
+                    "PaymentMethod": [payment_method],
+                    "MonthlyCharges": [monthly_charges],
+                    "TotalCharges": [total_charges]
                 })
                 
                 # Prediksi
@@ -415,8 +439,17 @@ if df is not None:
                 
                 # Tampilkan hasil
                 st.markdown("---")
-                st.markdown('<div class="sub-header">🎯 Hasil Prediksi</div>', unsafe_allow_html=True)
+                st.markdown("<div class=\"sub-header\">🎯 Hasil Prediksi</div>", unsafe_allow_html=True)
                 
+                # Tambahkan penjelasan untuk output tabel
+                st.markdown("""
+                <div class="info-box">
+                Tabel di bawah menampilkan hasil prediksi kemungkinan churn berdasarkan input yang Anda berikan. 
+                Kolom probabilitas menunjukkan tingkat kemungkinan pelanggan akan churn, 
+                sedangkan label hasil memberikan interpretasi langsung (Churn/Tidak Churn).
+                </div>
+                """, unsafe_allow_html=True)
+
                 if prediction == 1:
                     st.markdown(f"""
                     <div class="prediction-result churn-high">
@@ -433,7 +466,7 @@ if df is not None:
                     """, unsafe_allow_html=True)
                 
                 # Penjelasan prediksi
-                st.markdown('<div class="sub-header">💡 Penjelasan Prediksi</div>', unsafe_allow_html=True)
+                st.markdown("<div class=\"sub-header\">💡 Penjelasan Prediksi</div>", unsafe_allow_html=True)
                 
                 explanations = explain_prediction(input_data, feature_importance_df, numerical_features, categorical_features)
                 
@@ -445,7 +478,7 @@ if df is not None:
                     st.markdown("Tidak ada faktor signifikan yang teridentifikasi.")
                 
                 # Rekomendasi
-                st.markdown('<div class="sub-header">📋 Rekomendasi Tindakan</div>', unsafe_allow_html=True)
+                st.markdown("<div class=\"sub-header\">📋 Rekomendasi Tindakan</div>", unsafe_allow_html=True)
                 
                 if prediction == 1:
                     st.markdown("""
@@ -471,7 +504,7 @@ if df is not None:
 
     # HALAMAN 3: About
     elif page == "About":
-        st.markdown('<div class="main-header">ℹ️ Tentang Aplikasi</div>', unsafe_allow_html=True)
+        st.markdown("<div class=\"main-header\">ℹ️ Tentang Aplikasi</div>", unsafe_allow_html=True)
         
         st.markdown("""
         ## 🎯 Pemodelan Prediksi Churn dengan Regresi Logistik
@@ -528,20 +561,20 @@ if df is not None:
         """)
         
         # Model Performance
-        st.markdown('<div class="sub-header">📊 Performa Model</div>', unsafe_allow_html=True)
+        st.markdown("<div class=\"sub-header\">📊 Performa Model</div>", unsafe_allow_html=True)
         
         col1, col2, col3 = st.columns(3)
         
         with col1:
-            st.metric("Accuracy", f"{metrics['accuracy']:.3f}")
-            st.metric("Precision", f"{metrics['precision']:.3f}")
+            st.metric("Accuracy", f"{metrics["accuracy"]:.3f}")
+            st.metric("Precision", f"{metrics["precision"]:.3f}")
         
         with col2:
-            st.metric("Recall", f"{metrics['recall']:.3f}")
-            st.metric("F1-Score", f"{metrics['f1']:.3f}")
+            st.metric("Recall", f"{metrics["recall"]:.3f}")
+            st.metric("F1-Score", f"{metrics["f1"]:.3f}")
         
         with col3:
-            st.metric("ROC AUC", f"{metrics['roc_auc']:.3f}")
+            st.metric("ROC AUC", f"{metrics["roc_auc"]:.3f}")
         
         st.markdown("""
         <div class="info-box">
@@ -550,128 +583,5 @@ if df is not None:
         </div>
         """, unsafe_allow_html=True)
 
-    # HALAMAN 4: How to Use
-    elif page == "How to Use":
-        st.markdown('<div class="main-header">📖 Panduan Penggunaan</div>', unsafe_allow_html=True)
-        
-        st.markdown("""
-        ## 🚀 Cara Menggunakan Aplikasi
-        
-        ### 1. 📊 Dashboard Statistik Data
-        
-        **Tujuan**: Memahami karakteristik dan pola data pelanggan
-        
-        **Fitur yang tersedia**:
-        - **Metrik Utama**: Total pelanggan, jumlah churn, tingkat churn, rata-rata biaya
-        - **Distribusi Churn**: Visualisasi proporsi pelanggan yang churn vs tidak churn
-        - **Analisis Numerik**: Histogram distribusi untuk tenure, biaya bulanan, dan total biaya
-        - **Matriks Korelasi**: Hubungan antar variabel numerik
-        - **Analisis Kategorikal**: Tingkat churn berdasarkan kontrak, metode pembayaran, dll.
-        
-        **Cara membaca**:
-        - Grafik pie dan bar menunjukkan proporsi churn
-        - Histogram membantu memahami distribusi data
-        - Korelasi matrix menunjukkan hubungan antar variabel (-1 hingga 1)
-        - Bar chart kategorikal menunjukkan tingkat churn per kategori
-        
-        ### 2. 🔮 Prediksi Churn
-        
-        **Tujuan**: Memprediksi kemungkinan pelanggan akan churn
-        
-        **Langkah-langkah**:
-        
-        #### Step 1: Isi Informasi Demografis
-        - **Gender**: Pilih Male atau Female
-        - **Senior Citizen**: Apakah pelanggan berusia 65+ tahun?
-        - **Partner**: Apakah pelanggan memiliki pasangan?
-        - **Dependents**: Apakah pelanggan memiliki tanggungan?
-        
-        #### Step 2: Isi Informasi Layanan
-        - **Phone Service**: Apakah menggunakan layanan telepon?
-        - **Multiple Lines**: Apakah memiliki multiple lines?
-        - **Internet Service**: Pilih DSL, Fiber optic, atau No
-        
-        #### Step 3: Isi Layanan Tambahan
-        - **Online Security**: Layanan keamanan online
-        - **Online Backup**: Layanan backup online
-        - **Device Protection**: Proteksi perangkat
-        - **Tech Support**: Dukungan teknis
-        - **Streaming TV**: Layanan streaming TV
-        - **Streaming Movies**: Layanan streaming film
-        
-        #### Step 4: Isi Informasi Kontrak & Pembayaran
-        - **Contract**: Month-to-month, One year, atau Two year
-        - **Paperless Billing**: Apakah menggunakan tagihan elektronik?
-        - **Payment Method**: Metode pembayaran yang digunakan
-        
-        #### Step 5: Isi Informasi Finansial
-        - **Tenure**: Lama berlangganan dalam bulan (0-100)
-        - **Monthly Charges**: Biaya bulanan dalam USD
-        - **Total Charges**: Total biaya yang telah dibayar
-        
-        #### Step 6: Klik "Prediksi Churn"
-        
-        **Hasil yang akan ditampilkan**:
-        - **Status Risiko**: Tinggi (merah) atau Rendah (hijau)
-        - **Probabilitas**: Persentase kemungkinan churn
-        - **Penjelasan**: Faktor-faktor yang mempengaruhi prediksi
-        - **Rekomendasi**: Tindakan yang disarankan
-        
-        ### 3. 💡 Tips Penggunaan
-        
-        #### Untuk Input Data:
-        - **Pastikan semua field terisi** untuk hasil prediksi yang akurat
-        - **Gunakan data real** pelanggan untuk hasil terbaik
-        - **Perhatikan konsistensi** antara layanan internet dan layanan tambahan
-        - **Tenure dan Total Charges** harus masuk akal (tenure × monthly charges ≈ total charges)
-        
-        #### Untuk Interpretasi Hasil:
-        - **Probabilitas > 70%**: Risiko sangat tinggi, tindakan segera diperlukan
-        - **Probabilitas 50-70%**: Risiko tinggi, perlu monitoring ketat
-        - **Probabilitas 30-50%**: Risiko sedang, tindakan preventif
-        - **Probabilitas < 30%**: Risiko rendah, pertahankan kualitas layanan
-        
-        ### 4. 🎯 Contoh Penggunaan
-        
-        #### Skenario 1: Pelanggan Berisiko Tinggi
-        ```
-        Gender: Female
-        Senior Citizen: No
-        Partner: No
-        Contract: Month-to-month
-        Internet Service: Fiber optic
-        Monthly Charges: $85
-        Tenure: 3 months
-        ```
-        **Hasil**: Risiko tinggi karena kontrak pendek, biaya tinggi, tenure rendah
-        
-        #### Skenario 2: Pelanggan Stabil
-        ```
-        Gender: Male
-        Senior Citizen: No
-        Partner: Yes
-        Contract: Two year
-        Internet Service: DSL
-        Monthly Charges: $45
-        Tenure: 36 months
-        ```
-        **Hasil**: Risiko rendah karena kontrak panjang, tenure tinggi, biaya wajar
-        
-        ### 5. ⚠️ Hal yang Perlu Diperhatikan
-        
-        - **Model Limitation**: Prediksi berdasarkan pola historis, tidak 100% akurat
-        - **Data Quality**: Kualitas input mempengaruhi kualitas prediksi
-        - **Context Matters**: Pertimbangkan faktor eksternal yang tidak ada dalam model
-        - **Regular Update**: Model perlu diperbarui secara berkala dengan data terbaru
-        
-        ### 6. 📞 Dukungan
-        
-        Jika mengalami kesulitan atau memiliki pertanyaan:
-        - Periksa kembali format input data
-        - Pastikan semua field telah terisi
-        - Hubungi tim IT untuk dukungan teknis
-        """)
-
 else:
     st.error("Tidak dapat memuat data. Pastikan file 'data-customer-churn.csv' tersedia.")
-
