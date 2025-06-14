@@ -103,7 +103,7 @@ st.markdown("""
 def load_and_preprocess_data():
     """Memuat dataset dan melakukan pra-pemrosesan awal."""
     try:
-        df = pd.read_csv("data-customer-churn.csv")
+        df = pd.read_csv("demo-streamlit/data-customer-churn.csv")
         
         # Menangani nilai kosong di TotalCharges
         df["TotalCharges"] = df["TotalCharges"].replace(" ", np.nan).astype(float)
